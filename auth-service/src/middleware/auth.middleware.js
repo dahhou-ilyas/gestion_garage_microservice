@@ -23,3 +23,16 @@ const authMiddleware =async (req,res,next)=>{
         return res.status(401).json({ message: 'Token invalide' });
     }
 }
+
+const checkRole = (...roles) => {
+    return (req,res,next)=>{
+        if(!roles.includes(req.employee.role)){
+            return res.status(403).json({ 
+                message: 'Accès non autorisé pour votre rôle' 
+            });
+        }
+        next();
+    }
+}
+
+module.exports = { authMiddleware, checkRole };
