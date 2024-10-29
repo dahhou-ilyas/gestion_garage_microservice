@@ -1,0 +1,25 @@
+const jwt=require('jsonwebtoken');
+const Employee=require('../models/user.model');
+
+const authMiddleware =async (req,res,next)=>{
+    try {
+        const token=req.headers.authorization?.split(' ')[1];
+        if(!token){
+            return res.status(401).json({ message: 'Authentification requise' });
+        }
+
+        const decoded = jwt.verify(token,process.env.JWT_SECRET);
+
+        const employee = await Employee.findById(decoded.id);
+
+        if (!employee || !employee.active) {
+            return res.status(401).json({ message: 'Compte employé non valide ou inactif' });
+        }
+
+        req.employee = employee;
+        next();
+
+    } catch (error) {
+        return res.status(401).json({ message: 'Token invalide' });
+    }
+}
