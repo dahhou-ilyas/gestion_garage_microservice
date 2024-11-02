@@ -6,10 +6,10 @@ const {authMiddleware,checkRole}=require('../middleware/auth.middleware');
 
 router.post('/register-employee'
     ,authMiddleware
-    ,checkRole(['admin'])
+    ,checkRole('admin')
     ,authController.registerEmployee
 );
 
-router.post('login',authController.login);
+router.post('/login',authController.login);
 
 module.exports = router;

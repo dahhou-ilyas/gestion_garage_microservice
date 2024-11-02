@@ -9,6 +9,9 @@ const authMiddleware =async (req,res,next)=>{
         }
 
         const decoded = jwt.verify(token,process.env.JWT_SECRET);
+        console.log("------------------");
+        console.log(decoded);
+        console.log("-------------------");
 
         const employee = await Employee.findById(decoded.id);
 
