@@ -46,6 +46,12 @@ public class CustomerService {
 
     }
 
+    public CustomerDTO getCustomerById(Long id) {
+        return customerRepository.findById(id)
+                .map(this::mapToDTO)
+                .orElseThrow(() -> new EntityNotFoundException("Customer not found"));
+    }
+
 
 
 
