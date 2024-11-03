@@ -1,5 +1,6 @@
 package org.example.customerservice.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.example.customerservice.dto.CustomerDTO;
 import org.example.customerservice.entities.Customer;
@@ -27,6 +28,24 @@ public class CustomerService {
         return mapToDTO(savedCustomer);
     }
 
+    public CustomerDTO updateCustomer(Long id, CustomerDTO customerDTO){
+        Customer customer = customerRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Customer not found"));
+
+        updateCustomerFields(customer, customerDTO);
+        Customer updatedCustomer = customerRepository.save(customer);
+
+        CustomerEvent event = new CustomerEvent();
+        event.setEventType("CUSTOMER_UPDATED");
+        event.setCustomerId(updatedCustomer.getId());
+        event.setCustomerEmail(updatedCustomer.getEmail());
+        //kafkaTemplate.send("customer-events", event);
+
+        return mapToDTO(updatedCustomer);
+
+
+    }
+
 
 
 
@@ -50,5 +69,23 @@ public class CustomerService {
         dto.setPhone(customer.getPhone());
         dto.setEmail(customer.getEmail());
         return dto;
+    }
+
+    private void updateCustomerFields(Customer customer, CustomerDTO dto) {
+        if(dto.getFirstName()!=null){
+            customer.setFirstName(dto.getFirstName());
+        }
+        if (dto.getLastName()!=null){
+            customer.setLastName(dto.getLastName());
+        }
+        if(dto.getAddress()!=null){
+            customer.setAddress(dto.getAddress());
+        }
+        if(dto.getPhone()!=null){
+            customer.setPhone(dto.getPhone());
+        }
+        if (dto.getEmail()!=null){
+            customer.setEmail(dto.getEmail());
+        }
     }
 }
