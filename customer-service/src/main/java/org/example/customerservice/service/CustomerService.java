@@ -23,6 +23,7 @@ public class CustomerService {
         event.setEventType("CUSTOMER_CREATED");
         event.setCustomerId(savedCustomer.getId());
         event.setCustomerEmail(savedCustomer.getEmail());
+        event.setCustomerName(savedCustomer.getFirstName() + " " +savedCustomer.getLastName());
 
         //kafkaTemplate.send("customer-events", event);
         return mapToDTO(savedCustomer);
@@ -39,6 +40,7 @@ public class CustomerService {
         event.setEventType("CUSTOMER_UPDATED");
         event.setCustomerId(updatedCustomer.getId());
         event.setCustomerEmail(updatedCustomer.getEmail());
+        event.setCustomerName(updatedCustomer.getFirstName() + " " +updatedCustomer.getLastName());
         //kafkaTemplate.send("customer-events", event);
 
         return mapToDTO(updatedCustomer);

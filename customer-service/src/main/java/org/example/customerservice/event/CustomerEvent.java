@@ -7,4 +7,5 @@ public class CustomerEvent {
     private String eventType;
     private Long customerId;
     private String customerEmail;
+    private String customerName;
 }
