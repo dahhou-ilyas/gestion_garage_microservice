@@ -1,5 +1,6 @@
 package org.example.notificationservice.listener;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.notificationservice.event.CustomerEvent;
@@ -12,22 +13,21 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class CustomerEventListener {
     private final EmailService emailService;
+    private final ObjectMapper objectMapper;
 
-    @KafkaListener(topics = "customer-events")
-    public void handleCustomerEvent(CustomerEvent customerEvent) {
-        System.out.println("?????????????????????????");
-        System.out.println(customerEvent);
-        System.out.println("?????????????????????????");
+    @KafkaListener(topics = "customer-events", groupId = "message-group")
+    public void handleCustomerEvent(String event) {
         try {
-            System.out.println(customerEvent.getEventType());
-            log.info("Received customer event: {}", customerEvent);
+            CustomerEvent customerEvent = objectMapper.readValue(event, CustomerEvent.class);
+
+            log.info("Received customer event: {}", event);
 
             if ("CUSTOMER_CREATED".equals(customerEvent.getEventType())) {
                 log.info("Processing new customer registration: {}", customerEvent.getCustomerEmail());
                 emailService.sendWelcomeEmail(customerEvent.getCustomerEmail(), customerEvent.getCustomerName());
             }
         } catch (Exception e) {
-            log.error("Error processing customer event: {}", customerEvent, e);
+            log.error("Error processing customer event: {}", event, e);
         }
     }
 }
