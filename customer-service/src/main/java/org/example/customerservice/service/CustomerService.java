@@ -6,13 +6,14 @@ import org.example.customerservice.dto.CustomerDTO;
 import org.example.customerservice.entities.Customer;
 import org.example.customerservice.event.CustomerEvent;
 import org.example.customerservice.repository.CustomerRepository;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class CustomerService {
     private final CustomerRepository customerRepository;
-    //private final KafkaTemplate<String, CustomerEvent> kafkaTemplate;
+    private final KafkaTemplate<String, CustomerEvent> kafkaTemplate;
 
 
     public CustomerDTO createCustomer(CustomerDTO customerDTO){
@@ -25,7 +26,7 @@ public class CustomerService {
         event.setCustomerEmail(savedCustomer.getEmail());
         event.setCustomerName(savedCustomer.getFirstName() + " " +savedCustomer.getLastName());
 
-        //kafkaTemplate.send("customer-events", event);
+        kafkaTemplate.send("customer-events", event);
         return mapToDTO(savedCustomer);
     }
 
@@ -41,7 +42,7 @@ public class CustomerService {
         event.setCustomerId(updatedCustomer.getId());
         event.setCustomerEmail(updatedCustomer.getEmail());
         event.setCustomerName(updatedCustomer.getFirstName() + " " +updatedCustomer.getLastName());
-        //kafkaTemplate.send("customer-events", event);
+        kafkaTemplate.send("customer-events", event);
 
         return mapToDTO(updatedCustomer);
 
