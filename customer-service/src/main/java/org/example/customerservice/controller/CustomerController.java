@@ -1,5 +1,6 @@
 package org.example.customerservice.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import org.example.customerservice.dto.CustomerDTO;
 import org.example.customerservice.service.CustomerService;
@@ -13,14 +14,14 @@ public class CustomerController {
     private final CustomerService customerService;
 
     @PostMapping
-    public ResponseEntity<CustomerDTO> createCustomer(@RequestBody CustomerDTO customerDTO) {
+    public ResponseEntity<CustomerDTO> createCustomer(@RequestBody CustomerDTO customerDTO) throws JsonProcessingException {
         return ResponseEntity.ok(customerService.createCustomer(customerDTO));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<CustomerDTO> updateCustomer(
             @PathVariable Long id,
-            @RequestBody CustomerDTO customerDTO) {
+            @RequestBody CustomerDTO customerDTO) throws JsonProcessingException {
         return ResponseEntity.ok(customerService.updateCustomer(id, customerDTO));
     }
 

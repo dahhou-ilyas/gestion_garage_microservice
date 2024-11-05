@@ -1,5 +1,7 @@
 package org.example.customerservice.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.example.customerservice.dto.CustomerDTO;
@@ -13,10 +15,10 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class CustomerService {
     private final CustomerRepository customerRepository;
-    private final KafkaTemplate<String, CustomerEvent> kafkaTemplate;
+    private final KafkaTemplate<String, String> kafkaTemplate;
 
-
-    public CustomerDTO createCustomer(CustomerDTO customerDTO){
+    private final ObjectMapper objectMapper;
+    public CustomerDTO createCustomer(CustomerDTO customerDTO) throws JsonProcessingException {
         Customer customer = mapToEntity(customerDTO);
         Customer savedCustomer = customerRepository.save(customer);
 
@@ -26,11 +28,13 @@ public class CustomerService {
         event.setCustomerEmail(savedCustomer.getEmail());
         event.setCustomerName(savedCustomer.getFirstName() + " " +savedCustomer.getLastName());
 
-        kafkaTemplate.send("customer-events", event);
+        String messageJson = objectMapper.writeValueAsString(event);
+
+        kafkaTemplate.send("customer-events", messageJson);
         return mapToDTO(savedCustomer);
     }
 
-    public CustomerDTO updateCustomer(Long id, CustomerDTO customerDTO){
+    public CustomerDTO updateCustomer(Long id, CustomerDTO customerDTO) throws JsonProcessingException {
         Customer customer = customerRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Customer not found"));
 
@@ -42,7 +46,10 @@ public class CustomerService {
         event.setCustomerId(updatedCustomer.getId());
         event.setCustomerEmail(updatedCustomer.getEmail());
         event.setCustomerName(updatedCustomer.getFirstName() + " " +updatedCustomer.getLastName());
-        kafkaTemplate.send("customer-events", event);
+
+        String messageJson = objectMapper.writeValueAsString(event);
+
+        kafkaTemplate.send("customer-events", messageJson);
 
         return mapToDTO(updatedCustomer);
 
