@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class EmailService {
     private final JavaMailSender mailSender;
+
     public void sendWelcomeEmail(String to, String customerName){
         try{
             MimeMessage message=mailSender.createMimeMessage();
