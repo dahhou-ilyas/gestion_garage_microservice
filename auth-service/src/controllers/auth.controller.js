@@ -3,6 +3,10 @@ const Employee = require('../models/user.model');
 
 const { validationResult } = require('express-validator');
 
+const AuthService = require('../service/authService');
+const authService = new AuthService();
+
+
 const authController = {
     registerEmployee: async (req, res) => {
         try {
@@ -68,15 +72,16 @@ const authController = {
             }
             employee.lastLogin = new Date();
             await employee.save();
-            const token = jwt.sign(
-                { 
-                  id: employee._id,
-                  role: employee.role,
-                  employeeId: employee.employeeId 
-                },
-                process.env.JWT_SECRET,
-                { expiresIn: process.env.JWT_EXPIRES_IN }
-            );
+
+            const payload = {
+                id: employee._id,
+                role: employee.role,
+                employeeId: employee.employeeId
+            };
+
+            const token = authService.generateToken(payload);
+
+            
             res.json({
                 token,
                 employee: {
@@ -94,7 +99,20 @@ const authController = {
                 error: error.message 
             });
         }
+    },
+
+    getPublicKey: (req, res) => {
+        try {
+            const publicKey = authService.getPublicKey();
+            res.json({ publicKey: publicKey.toString() });
+        } catch (error) {
+            res.status(500).json({
+                message: 'Erreur lors de la récupération de la clé publique',
+                error: error.message
+            });
+        }
     }
+
 }
 
 module.exports = authController

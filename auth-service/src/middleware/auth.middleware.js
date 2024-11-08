@@ -1,5 +1,6 @@
-const jwt=require('jsonwebtoken');
 const Employee=require('../models/user.model');
+const AuthService = require('../services/authService');
+const authService = new AuthService();
 
 const authMiddleware =async (req,res,next)=>{
     try {
@@ -8,10 +9,8 @@ const authMiddleware =async (req,res,next)=>{
             return res.status(401).json({ message: 'Authentification requise' });
         }
 
-        const decoded = jwt.verify(token,process.env.JWT_SECRET);
-        console.log("------------------");
-        console.log(decoded);
-        console.log("-------------------");
+        const decoded = authService.verifyToken(token);
+
 
         const employee = await Employee.findById(decoded.id);
 
