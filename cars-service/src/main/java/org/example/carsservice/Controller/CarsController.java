@@ -46,4 +46,10 @@ public class CarsController {
         return ResponseEntity.noContent().build();
     }
 
+    @PutMapping("/{id}/{status}")
+    public ResponseEntity<Void> updateStatusCar(@PathVariable Long id,@PathVariable String status){
+        carsService.updateStatCar(id, status);
+        return ResponseEntity.noContent().build();
+    }
+
 }

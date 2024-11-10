@@ -10,6 +10,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -84,5 +85,17 @@ public class CarsService {
             throw new CarNotFoundException("Voiture non trouvée avec l'ID: " + id);
         }
         carsRepository.deleteById(id);
+    }
+
+    public void updateStatCar(Long id,String stats){
+        Optional<Cars> car = carsRepository.findById(id);
+        if(car.isPresent()){
+            Cars mycars = car.get();
+            mycars.setEtatCars(stats);
+            carsRepository.save(mycars);
+
+        }else {
+            throw new CarNotFoundException("cars "+id+" n'existe pas");
+        }
     }
 }
