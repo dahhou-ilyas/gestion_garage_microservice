@@ -1,8 +1,10 @@
 package org.example.workshopservice.dto;
 
+import lombok.Builder;
 import lombok.Data;
 
 @Data
+@Builder
 public class CustomerDTO {
     private Long id;
     private String identityNumber;

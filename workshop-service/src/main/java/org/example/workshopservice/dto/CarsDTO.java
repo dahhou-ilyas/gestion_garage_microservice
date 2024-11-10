@@ -1,10 +1,12 @@
 package org.example.workshopservice.dto;
 
+import lombok.Builder;
 import lombok.Data;
 
 import java.util.Date;
 
 @Data
+@Builder
 public class CarsDTO {
     private Long id;
     private String regestrationNumber;

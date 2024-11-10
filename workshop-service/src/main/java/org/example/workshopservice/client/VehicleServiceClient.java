@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 public interface VehicleServiceClient {
 
     @GetMapping("/api/cars/{id}")
-    CarsDTO getCarById(@PathVariable String id);
+    CarsDTO getCarById(@PathVariable Long id);
 
     @PutMapping("/api/cars/{id}/{status}")
-    void updateVehicleStatus(@PathVariable String id, @PathVariable String status);
+    void updateVehicleStatus(@PathVariable Long id, @PathVariable String status);
 }
