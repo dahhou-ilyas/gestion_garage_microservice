@@ -9,12 +9,17 @@ import org.example.workshopservice.client.VehicleServiceClient;
 import org.example.workshopservice.dto.CarsDTO;
 import org.example.workshopservice.dto.CustomerDTO;
 import org.example.workshopservice.dto.MaintenanceWorkDTO;
+import org.example.workshopservice.entities.MaintenanceStatus;
 import org.example.workshopservice.entities.MaintenanceWork;
+import org.example.workshopservice.event.MaintenanceCompletedEvent;
 import org.example.workshopservice.event.MaintenanceScheduledEvent;
 import org.example.workshopservice.repository.MaintenanceWorkRepository;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Service
 @Slf4j
@@ -73,8 +78,33 @@ public class MaintenanceService {
         kafkaTemplate.send("maintenance-scheduled", eventJson);
 
         return mapToDTO(work, carsDTO, customerDTO);
-
-
     }
 
+    public MaintenanceWorkDTO completeMaintenance(Long id, BigDecimal finalCost) throws JsonProcessingException {
+        MaintenanceWork work = maintenanceWorkRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Maintenance work not found"));
+
+        work.setStatus(MaintenanceStatus.COMPLETED);
+        work = maintenanceWorkRepository.save(work);
+
+        vehicleServiceClient.updateVehicleStatus(work.getVehicleId(),"FUNCTIONAL");
+
+        MaintenanceCompletedEvent event = MaintenanceCompletedEvent.builder()
+                .maintenanceId(work.getId())
+                .vehicleId(work.getVehicleId())
+                .customerId(work.getCustomerId())
+                .completionTime(LocalDateTime.now())
+                .finalCost(finalCost)
+                .build();
+
+        String eventJson = objectMapper.writeValueAsString(event);
+
+        kafkaTemplate.send("maintenance-completed", eventJson);
+
+        CarsDTO carDTO = vehicleServiceClient.getCarById(work.getVehicleId());
+
+        CustomerDTO customerDTO = customerServiceClient.getCustomerById(work.getCustomerId());
+
+        return mapToDTO(work, carDTO, customerDTO);
+    }
 }
