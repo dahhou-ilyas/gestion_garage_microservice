@@ -10,8 +10,8 @@ import java.time.LocalDateTime;
 @Builder
 public class MaintenanceCompletedEvent {
     private Long maintenanceId;
-    private String vehicleId;
-    private String customerId;
+    private Long vehicleId;
+    private Long customerId;
     private LocalDateTime completionTime;
     private BigDecimal finalCost;
 }

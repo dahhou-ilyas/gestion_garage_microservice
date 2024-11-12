@@ -19,7 +19,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -107,4 +110,39 @@ public class MaintenanceService {
 
         return mapToDTO(work, carDTO, customerDTO);
     }
+
+    public List<MaintenanceWorkDTO> getScheduleForDay(LocalDate date){
+        LocalDateTime start = date.atStartOfDay();
+        LocalDateTime end = date.plusDays(1).atStartOfDay();
+        return maintenanceWorkRepository.findByStartTimeBetween(start, end)
+                .stream()
+                .map(work -> {
+                    CarsDTO vehicle = vehicleServiceClient.getCarById(work.getVehicleId());
+                    CustomerDTO customer = customerServiceClient.getCustomerById(work.getCustomerId());
+                    return mapToDTO(work, vehicle, customer);
+                })
+                .collect(Collectors.toList());
+    }
+
+    private boolean isTimeSlotOccupied(LocalDateTime start, LocalDateTime end) {
+        List<MaintenanceWork> existingWorks = maintenanceWorkRepository
+                .findByStartTimeBetween(start, end);
+        return !existingWorks.isEmpty();
+    }
+
+    private MaintenanceWorkDTO mapToDTO(MaintenanceWork work, CarsDTO vehicle, CustomerDTO customer) {
+        return MaintenanceWorkDTO.builder()
+                .id(work.getId())
+                .startTime(work.getStartTime())
+                .endTime(work.getEndTime())
+                .description(work.getDescription())
+                .status(work.getStatus())
+                .vehicleId(work.getVehicleId())
+                .customerId(work.getCustomerId())
+                .estimatedCost(work.getEstimatedCost())
+                .vehicle(vehicle)
+                .customer(customer)
+                .build();
+    }
+
 }
