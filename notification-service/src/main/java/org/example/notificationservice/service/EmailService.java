@@ -1,5 +1,6 @@
 package org.example.notificationservice.service;
 
+import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,6 +46,38 @@ public class EmailService {
 
         } catch (Exception e) {
             log.error("Failed to send welcome email to {}: {}", to, e.getMessage());
+        }
+    }
+
+    public void sendCarRegistrationEmail(String to, String customerName, String carDetails) throws MessagingException {
+        try{
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(to);
+            helper.setSubject("Nouvelle voiture enregistrée - Garage Auto Service");
+
+            String htmlContent = String.format("""
+                <html>
+                    <body>
+                        <h2>Bonjour %s,</h2>
+                        <p>Nous vous confirmons l'enregistrement de votre véhicule dans notre système.</p>
+                        <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                            <h3 style="color: #2c3e50; margin-top: 0;">Détails du véhicule :</h3>
+                            %s
+                        </div>
+                        <p>Notre équipe est à votre disposition pour tout entretien ou réparation nécessaire.</p>
+                        <p>Pour prendre rendez-vous ou pour toute question, n'hésitez pas à nous contacter.</p>
+                        <p style="margin-top: 20px;">Cordialement,<br>L'équipe Garage Auto Service</p>
+                    </body>
+                </html>
+                """, customerName, carDetails);
+
+            helper.setText(htmlContent, true);
+            mailSender.send(message);
+            log.info("Car registration confirmation email sent successfully to {}", to);
+        }catch (Exception e) {
+            log.error("Failed to send car registration email to {}: {}", to, e.getMessage());
+            throw new RuntimeException("Failed to send email", e);
         }
     }
 }
