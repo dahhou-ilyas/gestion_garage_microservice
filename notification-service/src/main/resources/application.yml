@@ -6,8 +6,8 @@ spring:
     name: notification-service
   kafka:
     consumer:
-      bootstrap-servers: localhost:9092
-      group-id: message-group
+      group-id: default-group-id
+      bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
