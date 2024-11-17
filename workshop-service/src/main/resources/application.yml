@@ -1,1 +1,38 @@
-spring.application.name=workshop-service
+# src/main/resources/application.yml
+spring:
+  application:
+    name: workshop-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/workshop-db
+    username: garage-user
+    password: changeme
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: workshop-service
+      auto-offset-reset: earliest
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+server:
+  port: 8081
+
+feign:
+  client:
+    config:
+      cars-service:
+        url: http://cars-service:8082
+      customer-service:
+        url: http://customer-service:8083
+
+logging:
+  level:
+    com.garage.workshop: DEBUG
+    org.springframework.kafka: INFO
