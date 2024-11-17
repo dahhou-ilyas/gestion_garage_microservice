@@ -1,5 +1,6 @@
 package org.example.carsservice.Controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import org.example.carsservice.DTO.CarsDTO;
 import org.example.carsservice.Service.CarsService;
@@ -16,7 +17,7 @@ public class CarsController {
     private final CarsService carsService;
 
     @PostMapping
-    public ResponseEntity<CarsDTO> createCar(@RequestBody CarsDTO carsDTO) {
+    public ResponseEntity<CarsDTO> createCar(@RequestBody CarsDTO carsDTO) throws JsonProcessingException {
         return new ResponseEntity<>(carsService.addCar(carsDTO), HttpStatus.CREATED);
     }
 

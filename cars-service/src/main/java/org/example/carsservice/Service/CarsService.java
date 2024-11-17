@@ -1,12 +1,18 @@
 package org.example.carsservice.Service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.example.carsservice.DTO.CarsDTO;
 import org.example.carsservice.Exceptions.CarNotFoundException;
+import org.example.carsservice.Exceptions.CustomerNotFoundException;
 import org.example.carsservice.Exceptions.DuplicateCarException;
 import org.example.carsservice.Repository.CarsRepository;
+import org.example.carsservice.client.CustomerClient;
 import org.example.carsservice.entities.Cars;
+import org.example.carsservice.event.CarCreatedEvent;
 import org.springframework.beans.BeanUtils;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,8 +23,18 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CarsService {
     private final CarsRepository carsRepository;
+    private final CustomerClient customerClient;
+    private final KafkaTemplate<String, String> kafkaTemplate;
+    private final ObjectMapper objectMapper;
+    private static final String CAR_CREATED_TOPIC = "car-created";
 
-    public CarsDTO addCar(CarsDTO carsDTO){
+    public CarsDTO addCar(CarsDTO carsDTO) throws JsonProcessingException {
+        boolean customerExists = customerClient.customerExists(carsDTO.getIdOwner());
+
+        if (!customerExists) {
+            throw new CustomerNotFoundException("Le propriétaire avec l'ID " + carsDTO.getIdOwner() + " n'existe pas");
+        }
+
         if (carsRepository.findByRegestrationNumber(carsDTO.getRegestrationNumber()).isPresent()) {
             throw new DuplicateCarException("Une voiture avec ce numéro d'immatriculation existe déjà");
         }
@@ -26,6 +42,16 @@ public class CarsService {
         BeanUtils.copyProperties(carsDTO, car);
 
         Cars savedCar = carsRepository.save(car);
+
+        CarCreatedEvent event = new CarCreatedEvent(
+                savedCar.getId(),
+                savedCar.getIdOwner(),
+                savedCar.getRegestrationNumber(),
+                savedCar.getMarque(),
+                savedCar.getModel()
+        );
+        String messageJson = objectMapper.writeValueAsString(event);
+        kafkaTemplate.send(CAR_CREATED_TOPIC, messageJson);
 
         CarsDTO savedCarDTO = new CarsDTO();
         BeanUtils.copyProperties(savedCar, savedCarDTO);
