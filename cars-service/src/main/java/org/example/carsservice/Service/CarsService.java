@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.example.carsservice.DTO.CarsDTO;
+import org.example.carsservice.DTO.CustomerDTO;
 import org.example.carsservice.Exceptions.CarNotFoundException;
 import org.example.carsservice.Exceptions.CustomerNotFoundException;
 import org.example.carsservice.Exceptions.DuplicateCarException;
@@ -29,9 +30,9 @@ public class CarsService {
     private static final String CAR_CREATED_TOPIC = "car-created";
 
     public CarsDTO addCar(CarsDTO carsDTO) throws JsonProcessingException {
-        boolean customerExists = customerClient.customerExists(carsDTO.getIdOwner());
+        CustomerDTO customerExists = customerClient.customerExists(carsDTO.getIdOwner());
 
-        if (!customerExists) {
+        if (customerExists==null) {
             throw new CustomerNotFoundException("Le propriétaire avec l'ID " + carsDTO.getIdOwner() + " n'existe pas");
         }
 
@@ -46,6 +47,9 @@ public class CarsService {
         CarCreatedEvent event = new CarCreatedEvent(
                 savedCar.getId(),
                 savedCar.getIdOwner(),
+                customerExists.getEmail(),
+                customerExists.getFirstName(),
+                customerExists.getLastName(),
                 savedCar.getRegestrationNumber(),
                 savedCar.getMarque(),
                 savedCar.getModel()
