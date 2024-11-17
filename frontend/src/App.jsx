@@ -1,7 +1,7 @@
 function App() {
 
   return (
-    <h1 className="bg-black font-extralight">
+    <h1 className="">
       Hello world!cscscscscsc
     </h1>
   )
