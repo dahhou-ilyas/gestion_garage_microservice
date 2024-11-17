@@ -20,7 +20,7 @@ public class CarCreatedEventListenner {
     private final ObjectMapper objectMapper;
     private final RedisTemplate<String, String> redisTemplate;
 
-    @KafkaListener(topics = "customer-events", groupId = "message-group")
+    @KafkaListener(topics = "car-created", groupId = "cars-group")
     public void handleCarsCreationToGarage(String event) {
         try{
             CarCreatedEvent carCreatedEvent = objectMapper.readValue(event,CarCreatedEvent.class);

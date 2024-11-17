@@ -17,7 +17,7 @@ public class CustomerEventListener {
     private final ObjectMapper objectMapper;
     private final RedisTemplate<String, String> redisTemplate;
 
-    @KafkaListener(topics = "customer-events", groupId = "message-group")
+    @KafkaListener(topics = "customer-events", groupId = "customer-group")
     public void handleCustomerEvent(String event) {
         try {
             CustomerEvent customerEvent = objectMapper.readValue(event, CustomerEvent.class);
