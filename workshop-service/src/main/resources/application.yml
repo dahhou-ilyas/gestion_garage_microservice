@@ -16,7 +16,7 @@ spring:
   # JPA Configuration
   jpa:
     hibernate:
-      ddl-auto: ${JPA_DDL_AUTO:update}
+      ddl-auto: ${JPA_DDL_AUTO:create}
     show-sql: ${SHOW_SQL:true}
     database-platform: org.hibernate.dialect.PostgreSQLDialect
 
