@@ -66,7 +66,7 @@ public class BillingService {
 
         Invoice invoice = Invoice.builder()
                 .InvoiceNumber(generateInvoiceNumber())
-                .CustomerId(customer.getId())
+                .customerId(customer.getId())
                 .carId(vehicle.getId())
                 .maintenanceWorkId(maintenanceWork.getId())
                 .issueDate(LocalDateTime.now())
@@ -142,5 +142,9 @@ public class BillingService {
                 maintenanceWork.getStartTime(),
                 maintenanceWork.getEndTime()
         );
+    }
+
+    public Invoice getInvoiceById(Long id){
+        return invoiceRepository.findById(id).orElseThrow(()-> new RuntimeException("Invoice not existe"));
     }
 }

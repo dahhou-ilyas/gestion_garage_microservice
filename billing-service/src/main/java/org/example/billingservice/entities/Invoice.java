@@ -22,7 +22,7 @@ public class Invoice {
     private long id;
 
     private String InvoiceNumber;
-    private Long CustomerId;
+    private Long customerId;
     private Long carId;
     private Long maintenanceWorkId;
     private LocalDateTime issueDate;
