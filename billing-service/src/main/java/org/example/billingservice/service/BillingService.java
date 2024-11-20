@@ -129,7 +129,7 @@ public class BillingService {
 
     private String generateInvoiceDescription(MaintenanceCompletedEvent maintenanceWork, CarsDTO vehicle) {
         return String.format(
-                "Maintenance work performed on %s %s (%s)\nDescription: %s\nStart Time: %s\nEnd Time: %s",
+                "Maintenance work performed on %s %s (%s)\nDescription: %s",
                 vehicle.getMarque(),
                 vehicle.getModel(),
                 vehicle.getRegestrationNumber(),
