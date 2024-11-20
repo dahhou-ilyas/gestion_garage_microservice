@@ -1,6 +1,6 @@
 # application.yml
 server:
-  port: ${SERVER_PORT:8083}
+  port: ${SERVER_PORT:8084}
 
 spring:
   application:
@@ -29,7 +29,7 @@ spring:
 
   cloud:
     discovery:
-      enabled: false
+      enabled: true
 
 # Eureka Client Configuration
 eureka:

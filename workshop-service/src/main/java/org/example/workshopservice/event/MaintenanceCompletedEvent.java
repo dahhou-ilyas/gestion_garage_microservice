@@ -14,4 +14,5 @@ public class MaintenanceCompletedEvent {
     private Long customerId;
     private LocalDateTime completionTime;
     private BigDecimal finalCost;
+    private String description;
 }

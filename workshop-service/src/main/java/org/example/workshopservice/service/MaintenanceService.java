@@ -98,6 +98,7 @@ public class MaintenanceService {
                 .customerId(work.getCustomerId())
                 .completionTime(LocalDateTime.now())
                 .finalCost(finalCost)
+                .description(work.getDescription())
                 .build();
 
         String eventJson = objectMapper.writeValueAsString(event);
