@@ -20,7 +20,7 @@ import java.util.List;
 @RequestMapping("/api/invoices")
 @RequiredArgsConstructor
 public class InvoiceController {
-    private BillingService billingService;
+    private final BillingService billingService;
 
     @GetMapping("/customer/{customerId}")
     public List<Invoice> getCustomerInvoices(@PathVariable Long customerId) {
@@ -36,6 +36,7 @@ public class InvoiceController {
     public ResponseEntity<Resource> downloadInvoicePDF(@PathVariable Long invoiceId) throws MalformedURLException {
         Invoice invoice = billingService.getInvoiceById(invoiceId);
         Path pdfPath = Paths.get(invoice.getPdfUrl());
+        System.out.println(pdfPath.toUri().toString());
         Resource resource = new UrlResource(pdfPath.toUri());
 
         return ResponseEntity.ok()

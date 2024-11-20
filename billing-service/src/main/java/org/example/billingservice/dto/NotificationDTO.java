@@ -9,8 +9,9 @@ import java.time.LocalDateTime;
 @Builder
 public class NotificationDTO {
     private Long customerId;
-    private String type; // INVOICE, REMINDER, etc.
+    private String type;
     private String message;
-    private String details; // PDF URL, additional info
-    private LocalDateTime createdAt;
+    private String pdfContent; // Contenu PDF encodé en Base64
+    private String invoiceNumber;
+    private String mail;
 }

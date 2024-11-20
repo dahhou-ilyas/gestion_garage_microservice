@@ -1,12 +1,13 @@
 package org.example.billingservice.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.billingservice.client.CustomerServiceClient;
 import org.example.billingservice.client.VehicleServiceClient;
 import org.example.billingservice.dto.CarsDTO;
 import org.example.billingservice.dto.CustomerDTO;
-import org.example.billingservice.dto.MaintenanceWorkDTO;
+import org.example.billingservice.dto.MaintenanceCompletedEvent;
 import org.example.billingservice.entities.Invoice;
 import org.example.billingservice.entities.InvoiceStatus;
 import org.example.billingservice.repository.InvoiceRepository;
@@ -29,26 +30,29 @@ public class BillingService {
     private final VehicleServiceClient vehicleServiceClient;
     private final PDFGeneratorService pdfGeneratorService;
     private final KafkaTemplate<String, String> kafkaTemplate;
+    private final ObjectMapper objectMapper;
 
     private final BigDecimal TAX_RATE = BigDecimal.valueOf(0.2); // 20% tax rate
     private final int PAYMENT_DUE_DAYS = 30;
 
     @KafkaListener(topics = "maintenance-completed")
     @Transactional
-    public void handleMaintenanceCompleted(MaintenanceWorkDTO maintenanceWork) {
-        log.info("Received maintenance completed event for work ID: {}", maintenanceWork.getId());
+    public void handleMaintenanceCompleted(String CompletedEvent) {
+        log.info("Received maintenance completed event for work ID: {}", CompletedEvent);
 
         try {
-            if (invoiceRepository.findByMaintenanceWorkId(maintenanceWork.getId()).isPresent()) {
-                log.warn("Invoice already exists for maintenance work ID: {}", maintenanceWork.getId());
+            MaintenanceCompletedEvent maintenanceCompletedEvent = objectMapper.readValue(CompletedEvent, MaintenanceCompletedEvent.class);
+
+            if (invoiceRepository.findByMaintenanceWorkId(maintenanceCompletedEvent.getMaintenanceId()).isPresent()) {
+                log.warn("Invoice already exists for maintenance work ID: {}", maintenanceCompletedEvent.getMaintenanceId());
                 return;
             }
-            Invoice invoice = createInvoice(maintenanceWork);
+            Invoice invoice = createInvoice(maintenanceCompletedEvent);
             generateAndSendInvoice(invoice);
 
             kafkaTemplate.send("invoice-generated", String.valueOf(invoice.getId()));
 
-            log.info("Invoice successfully generated and sent for maintenance work ID: {}", maintenanceWork.getId());
+            log.info("Invoice successfully generated and sent for maintenance work ID: {}", maintenanceCompletedEvent.getMaintenanceId());
 
         } catch (Exception e) {
             log.error("Error processing maintenance completed event", e);
@@ -56,11 +60,11 @@ public class BillingService {
         }
     }
     @Transactional
-    protected Invoice createInvoice(MaintenanceWorkDTO maintenanceWork){
-        CustomerDTO customer = customerServiceClient.getCustomerById(maintenanceWork.getCustomer().getId());
-        CarsDTO vehicle = vehicleServiceClient.getCarById(maintenanceWork.getVehicle().getId());
+    protected Invoice createInvoice(MaintenanceCompletedEvent maintenanceCompletedEvent){
+        CustomerDTO customer = customerServiceClient.getCustomerById(maintenanceCompletedEvent.getCustomerId());
+        CarsDTO vehicle = vehicleServiceClient.getCarById(maintenanceCompletedEvent.getVehicleId());
 
-        BigDecimal subTotal = maintenanceWork.getEstimatedCost();
+        BigDecimal subTotal = maintenanceCompletedEvent.getFinalCost();
         BigDecimal taxAmount = subTotal.multiply(TAX_RATE);
         BigDecimal total = subTotal.add(taxAmount);
 
@@ -68,7 +72,7 @@ public class BillingService {
                 .InvoiceNumber(generateInvoiceNumber())
                 .customerId(customer.getId())
                 .carId(vehicle.getId())
-                .maintenanceWorkId(maintenanceWork.getId())
+                .maintenanceWorkId(maintenanceCompletedEvent.getMaintenanceId())
                 .issueDate(LocalDateTime.now())
                 .dueDate(LocalDateTime.now().plusDays(PAYMENT_DUE_DAYS))
                 .status(InvoiceStatus.ISSUED)
@@ -76,7 +80,7 @@ public class BillingService {
                 .taxRate(TAX_RATE)
                 .taxAmount(taxAmount)
                 .total(total)
-                .description(generateInvoiceDescription(maintenanceWork, vehicle))
+                .description(generateInvoiceDescription(maintenanceCompletedEvent, vehicle))
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
@@ -94,15 +98,6 @@ public class BillingService {
             String pdfPath = pdfGeneratorService.generateInvoicePDF(invoice, customer, vehicle);
             invoice.setPdfUrl(pdfPath);
             invoiceRepository.save(invoice);
-
-            String message = String.format(
-                    "Invoice %s generated for customer %s %s, total amount: %s",
-                    invoice.getInvoiceNumber(),
-                    customer.getFirstName(),
-                    customer.getLastName(),
-                    invoice.getTotal()
-            );
-            kafkaTemplate.send("notifications", message);
         } catch (Exception e) {
             log.error("Error generating and sending invoice", e);
             throw new RuntimeException("Failed to generate and send invoice", e);
@@ -132,15 +127,13 @@ public class BillingService {
         return "INV-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     }
 
-    private String generateInvoiceDescription(MaintenanceWorkDTO maintenanceWork, CarsDTO vehicle) {
+    private String generateInvoiceDescription(MaintenanceCompletedEvent maintenanceWork, CarsDTO vehicle) {
         return String.format(
                 "Maintenance work performed on %s %s (%s)\nDescription: %s\nStart Time: %s\nEnd Time: %s",
                 vehicle.getMarque(),
                 vehicle.getModel(),
                 vehicle.getRegestrationNumber(),
-                maintenanceWork.getDescription(),
-                maintenanceWork.getStartTime(),
-                maintenanceWork.getEndTime()
+                maintenanceWork.getDescription()
         );
     }
 
