@@ -4,7 +4,10 @@ const path = require('path');
 
 class AuthService {
     constructor() {
-        const keysDir = path.join(__dirname, '..', 'keys');
+
+        const rootDir = process.cwd(); 
+
+        const keysDir = path.join(rootDir, 'keys');
 
         this.privateKey = fs.readFileSync(
             path.join(keysDir, 'private.key')

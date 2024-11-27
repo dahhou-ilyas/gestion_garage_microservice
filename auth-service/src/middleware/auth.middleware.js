@@ -1,5 +1,5 @@
 const Employee=require('../models/user.model');
-const AuthService = require('../services/authService');
+const AuthService = require('../service/authService');
 const authService = new AuthService();
 
 const authMiddleware =async (req,res,next)=>{

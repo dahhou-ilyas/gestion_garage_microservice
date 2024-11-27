@@ -1,6 +1,6 @@
-const crypto = require('')
-const fs = require('fs');
-const path = require('path');
+const crypto = require('crypto')
+
+
 
 function generateKeyPair(){
     try {
@@ -15,10 +15,6 @@ function generateKeyPair(){
                 format: 'pem'
             }
         });
-        const rootDir = process.cwd(); // Obtient le dossier racine du projet
-        
-        fs.writeFileSync(path.join(rootDir, 'private.key'), privateKey);
-        fs.writeFileSync(path.join(rootDir, 'public.key'), publicKey);
 
         console.log('Clés générées avec succès dans le dossier racine du projet');
         return { privateKey, publicKey };
