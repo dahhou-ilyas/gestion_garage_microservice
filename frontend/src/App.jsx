@@ -1,12 +1,61 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CustomerManagement from "./component/CustomerManagement";
 import VehicleManagement from "./component/VehicleManagement.JSX";
 import MaintenanceScheduling from "./component/MaintenanceScheduling";
+import Authentication from "./component/Authentication";
+import axios from "axios";
+import { BACKEND_URL } from "../config";
 
 
 function App() {
 
   const [activeTab, setActiveTab] = useState('customers');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    // Check for existing authentication token on app load
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      // Verify token with backend (optional but recommended)
+      verifyToken(token);
+    }
+  }, []);
+
+  const verifyToken = async (token) => {
+    try {
+      // Implement token verification endpoint
+      await axios.get(`${BACKEND_URL}/auth/verify`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setIsAuthenticated(true);
+      
+      // Set the Authorization header for future requests
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    } catch (error) {
+      // Token is invalid
+      localStorage.removeItem('authToken');
+      setIsAuthenticated(false);
+    }
+  };
+
+  const handleLoginSuccess = () => {
+    setIsAuthenticated(true);
+  };
+
+  const handleLogout = () => {
+    // Remove token from localStorage
+    localStorage.removeItem('authToken');
+    
+    // Remove Authorization header
+    delete axios.defaults.headers.common['Authorization'];
+    
+    // Set authentication state to false
+    setIsAuthenticated(false);
+  };
+
+  if (!isAuthenticated) {
+    return <Authentication onLoginSuccess={handleLoginSuccess} />;
+  }
 
   return (
     <div className="container mx-auto">
