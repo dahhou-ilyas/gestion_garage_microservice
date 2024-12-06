@@ -21,7 +21,7 @@ const CustomerManagement = () => {
   const handleCustomerSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(`${BACKEND_URL}/customers`, customer);
+      const response = await axios.post(`${BACKEND_URL}/CUSTOMER-SERVICE/api/customers`, customer);
       alert('Customer created successfully');
       console.log(response.data);
       // Optionally reset form or update state

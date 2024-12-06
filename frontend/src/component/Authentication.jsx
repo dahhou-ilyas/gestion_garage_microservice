@@ -16,7 +16,7 @@ const Authentication = ({ onLoginSuccess }) => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post(`${BACKEND_URL}/auth/login`, {
+      const response = await axios.post(`${BACKEND_URL}/AUTH-SERVICE/api/auth/login`, {
         username: credentials.username,
         password: credentials.password
       });

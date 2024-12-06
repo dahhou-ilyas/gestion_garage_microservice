@@ -58,8 +58,10 @@ const authController = {
 
     login: async (req, res) => {
         try {
-            const { email, password } = req.body;
-            const employee = await Employee.findOne({ email });
+            const { username, password } = req.body;
+            console.log(username);
+            const employee = await Employee.findOne({ email: username });
+        
             if (!employee || !(await employee.isValidPassword(password))) {
                 return res.status(401).json({ 
                     message: 'Email ou mot de passe incorrect' 
