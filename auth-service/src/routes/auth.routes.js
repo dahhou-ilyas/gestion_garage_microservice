@@ -10,10 +10,9 @@ router.post('/register-employee'
     ,authController.registerEmployee
 );
 
-router.get('/test',(req,res)=>{
-    res.json('xxxxx')
-})
 
 router.post('/login',authController.login);
+
+router.get('/public-key', authController.getPublicKey);
 
 module.exports = router;

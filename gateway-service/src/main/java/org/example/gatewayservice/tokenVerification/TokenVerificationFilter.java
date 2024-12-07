@@ -1,7 +1,7 @@
 package org.example.gatewayservice.tokenVerification;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -12,7 +12,10 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import java.security.Key;
+import java.security.KeyFactory;
+import java.security.PublicKey;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
 import java.util.List;
 
 public class TokenVerificationFilter implements GlobalFilter {
@@ -20,7 +23,6 @@ public class TokenVerificationFilter implements GlobalFilter {
     private final WebClient webClient;
     private final ReactiveDiscoveryClient discoveryClient;
 
-    // Liste des endpoints à ignorer
     private static final List<String> EXCLUDED_PATHS = List.of(
             "/api/auth/login",
             "/api/auth/public-key"
@@ -33,10 +35,8 @@ public class TokenVerificationFilter implements GlobalFilter {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        // Récupérer le chemin de la requête
         String path = exchange.getRequest().getPath().toString();
 
-        // Ignorer la vérification pour les chemins exclus
         if (EXCLUDED_PATHS.stream().anyMatch(path::startsWith)) {
             return chain.filter(exchange);
         }
@@ -59,38 +59,49 @@ public class TokenVerificationFilter implements GlobalFilter {
                             .bodyToMono(String.class)
                             .flatMap(publicKeyResponse -> {
                                 try {
-                                    System.out.println("xxxxxxxxxxxxx");
-                                    System.out.println(publicKeyResponse);
-                                    System.out.println("xxxxxxxxxxxxxx");
-                                    verifyTokenWithPublicKey(token, publicKeyResponse);
+                                    String publicKey = extractPublicKeyFromResponse(publicKeyResponse);
+                                    verifyTokenWithPublicKey(token, publicKey);
                                     return chain.filter(exchange);
                                 } catch (Exception e) {
+                                    e.printStackTrace(); // Log détaillé pour le débogage
                                     return unauthorized(exchange);
                                 }
                             });
                 })
                 .switchIfEmpty(unauthorized(exchange))
-                .onErrorResume(ex -> unauthorized(exchange));
+                .onErrorResume(ex -> {
+                    ex.printStackTrace(); // Log d'erreur réseau
+                    return unauthorized(exchange);
+                });
     }
 
     private Mono<Void> unauthorized(ServerWebExchange exchange) {
         exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+        exchange.getResponse().getHeaders().add("WWW-Authenticate", "Bearer realm=\"Access to the API\"");
         return exchange.getResponse().setComplete();
     }
 
-    private void verifyTokenWithPublicKey(String token, String publicKeyStr) {
-        try {
-            // Decode the public key
-            byte[] keyBytes = Decoders.BASE64.decode(publicKeyStr);
-            Key key = Keys.hmacShaKeyFor(keyBytes);
+    private void verifyTokenWithPublicKey(String token, String publicKeyStr) throws Exception {
+        String cleanKey = publicKeyStr
+                .replace("-----BEGIN PUBLIC KEY-----", "")
+                .replace("-----END PUBLIC KEY-----", "")
+                .replaceAll("\\s", "");
 
-            // Validate the token
-            Jwts.parserBuilder()
-                    .setSigningKey(key)
-                    .build()
-                    .parseClaimsJws(token);
-        } catch (Exception e) {
-            throw new RuntimeException("Invalid token", e);
-        }
+        // Décoder la clé publique
+        byte[] keyBytes = Base64.getDecoder().decode(cleanKey);
+        X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);
+        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+        PublicKey publicKey = keyFactory.generatePublic(keySpec);
+
+        // Valider le token
+        Jwts.parserBuilder()
+                .setSigningKey(publicKey)
+                .build()
+                .parseClaimsJws(token);
+    }
+
+    private String extractPublicKeyFromResponse(String publicKeyResponse) throws Exception {
+        ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.readTree(publicKeyResponse).get("publicKey").asText();
     }
 }
