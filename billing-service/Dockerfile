@@ -1,24 +1,26 @@
-FROM eclipse-temurin:17-jdk-alpine
+FROM maven:3.8.7-eclipse-temurin-17 AS build
 
 WORKDIR /app
 
 COPY pom.xml .
+RUN mvn dependency:go-offline -B
 
 COPY src ./src
 
-COPY .mvn .mvn
-RUN chmod +x mvnw
+RUN mvn clean package -DskipTests
 
-RUN ./mvnw clean package -DskipTests
+FROM eclipse-temurin:17-jdk-jammy
 
-COPY target/customer-service-0.0.1-SNAPSHOT.jar customer-service.jar
+WORKDIR /app
 
-EXPOSE 8081
+COPY --from=build /app/target/billing-service-0.0.1-SNAPSHOT.jar app.jar
+
+EXPOSE 8085
 
 ENV KAFKA_BOOTSTRAP_SERVERS=localhost:9092 \
     DB_HOST=localhost \
     DB_PORT=5432 \
-    DB_NAME=customer_db \
+    DB_NAME=billing_service \
     DB_USERNAME=nom_utilisateur \
     DB_PASSWORD=mot_de_passe \
     JPA_DDL_AUTO=create \
@@ -26,4 +28,6 @@ ENV KAFKA_BOOTSTRAP_SERVERS=localhost:9092 \
     SPRING_CLOUD_DISCOVERY_ENABLED=true \
     EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://localhost:8761/eureka/
 
-ENTRYPOINT ["java", "-jar", "/app/customer-service.jar"]
+
+
+ENTRYPOINT ["java", "-jar", "app.jar"]

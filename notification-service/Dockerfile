@@ -1,28 +1,24 @@
-FROM maven:3.8.4-openjdk-17-slim AS builder
-WORKDIR /build
+FROM eclipse-temurin:17-jdk-alpine
 
-COPY pom.xml .
-RUN mvn dependency:go-offline
-
-COPY src ./src
-RUN mvn clean package -DskipTests
-
-FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 
-RUN addgroup -S spring && adduser -S spring -G spring
-USER spring:spring
+COPY pom.xml .
 
-COPY --from=builder /build/target/*.jar app.jar
+COPY src ./src
 
-ENV JAVA_OPTS="-Xmx512m -Xms256m"
-ENV SPRING_PROFILES_ACTIVE="prod"
+COPY .mvn .mvn
+RUN chmod +x mvnw
+
+RUN ./mvnw clean package -DskipTests
+
+COPY target/notification-service-0.0.1-SNAPSHOT.jar notification-service.jar
 
 EXPOSE 8083
 
-# Healthcheck
-HEALTHCHECK --interval=30s --timeout=3s \
-  CMD wget --quiet --tries=1 --spider http://localhost:8083/actuator/health || exit 1
+ENV KAFKA_BOOTSTRAP_SERVERS=localhost:9092 \
+    MAIL_USERNAME=your-email@example.com \
+    MAIL_PASSWORD=your-email-password \
+    SPRING_CLOUD_DISCOVERY_ENABLED=true \
+    EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://localhost:8761/eureka/
 
-# Démarrage de l'application
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+ENTRYPOINT ["java", "-jar", "/app/notification-service.jar"]
