@@ -31,21 +31,20 @@ public class GatewayServiceApplication {
         return new DiscoveryClientRouteDefinitionLocator(rdc, dlp);
     }
 
-
     @Bean
     public GlobalFilter logResponseFilter() {
-        return (exchange, chain) -> {
-            return chain.filter(exchange).then(Mono.fromRunnable(() -> {
-                exchange.getResponse().getHeaders().forEach((key, value) -> {
-                    System.out.println(key + ": " + value);
-                });
-            }));
-        };
+        return (exchange, chain) -> chain.filter(exchange).then(Mono.fromRunnable(() -> {
+            exchange.getResponse().getHeaders().forEach((key, value) -> {
+                System.out.println(key + ": " + value);
+            });
+        }));
     }
 
-
     @Bean
-    public GlobalFilter tokenVerificationFilter(@Qualifier("customWebClientBuilder") WebClient.Builder webClientBuilder) {
-        return new TokenVerificationFilter(webClientBuilder);
+    public GlobalFilter tokenVerificationFilter(
+            @Qualifier("customWebClientBuilder") WebClient.Builder webClientBuilder,
+            ReactiveDiscoveryClient discoveryClient
+    ) {
+        return new TokenVerificationFilter(webClientBuilder, discoveryClient);
     }
 }
