@@ -13,11 +13,18 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.security.Key;
+import java.util.List;
 
 public class TokenVerificationFilter implements GlobalFilter {
 
     private final WebClient webClient;
     private final ReactiveDiscoveryClient discoveryClient;
+
+    // Liste des endpoints à ignorer
+    private static final List<String> EXCLUDED_PATHS = List.of(
+            "/api/auth/login",
+            "/api/auth/public-key"
+    );
 
     public TokenVerificationFilter(WebClient.Builder webClientBuilder, ReactiveDiscoveryClient discoveryClient) {
         this.webClient = webClientBuilder.build();
@@ -26,6 +33,14 @@ public class TokenVerificationFilter implements GlobalFilter {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        // Récupérer le chemin de la requête
+        String path = exchange.getRequest().getPath().toString();
+
+        // Ignorer la vérification pour les chemins exclus
+        if (EXCLUDED_PATHS.stream().anyMatch(path::startsWith)) {
+            return chain.filter(exchange);
+        }
+
         String authorizationHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 
         if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
@@ -44,6 +59,9 @@ public class TokenVerificationFilter implements GlobalFilter {
                             .bodyToMono(String.class)
                             .flatMap(publicKeyResponse -> {
                                 try {
+                                    System.out.println("xxxxxxxxxxxxx");
+                                    System.out.println(publicKeyResponse);
+                                    System.out.println("xxxxxxxxxxxxxx");
                                     verifyTokenWithPublicKey(token, publicKeyResponse);
                                     return chain.filter(exchange);
                                 } catch (Exception e) {
