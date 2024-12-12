@@ -15,15 +15,12 @@ spec:
       containers:
       - name: gateway-service
         image: gateway-service:latest
+        imagePullPolicy: Never
         ports:
         - containerPort: 8888
         env:
         - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
           value: http://discovery-service:8761/eureka/
-      initContainers:
-      - name: wait-for-discovery-service
-        image: busybox
-        command: ['sh', '-c', 'until nslookup discovery-service; do echo waiting for discovery-service; sleep 2; done;']
 ---
 apiVersion: v1
 kind: Service
@@ -35,4 +32,4 @@ spec:
   ports:
   - port: 8888
     targetPort: 8888
-  type: LoadBalancer
+  type: NodePort

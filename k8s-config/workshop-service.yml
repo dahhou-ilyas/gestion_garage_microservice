@@ -15,6 +15,7 @@ spec:
       containers:
       - name: workshop-service
         image: workshop-service:latest
+        imagePullPolicy: Never
         ports:
         - containerPort: 8084
         env:

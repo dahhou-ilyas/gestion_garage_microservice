@@ -16,6 +16,7 @@ spec:
       containers:
       - name: mongo
         image: mongo:latest
+        imagePullPolicy: Never
         ports:
         - containerPort: 27017
         volumeMounts:
@@ -61,6 +62,7 @@ spec:
       containers:
       - name: redis
         image: redis:latest
+        imagePullPolicy: Never
         ports:
         - containerPort: 6379
         volumeMounts:

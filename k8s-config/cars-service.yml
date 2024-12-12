@@ -15,6 +15,7 @@ spec:
       containers:
       - name: cars-service
         image: cars-service:latest
+        imagePullPolicy: Never
         ports:
         - containerPort: 8082
         env:

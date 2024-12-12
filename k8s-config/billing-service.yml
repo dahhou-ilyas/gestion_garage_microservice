@@ -15,6 +15,7 @@ spec:
       containers:
       - name: billing-service
         image: billing-service:latest
+        imagePullPolicy: Never
         ports:
         - containerPort: 8085
         env:
