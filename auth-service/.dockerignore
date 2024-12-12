@@ -1,0 +1,18 @@
+# Ignore les fichiers sensibles
+.env
+
+# Ignorer les fichiers de logs
+*.log
+
+# Ignorer les répertoires d'environnement de développement
+node_modules/
+target/
+build/
+
+# Ignorer les fichiers de contrôle de version
+.git/
+.gitignore
+
+# Autres fichiers inutiles pour l'image
+.DS_Store
+*.swp

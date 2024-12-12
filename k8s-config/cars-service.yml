@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cars-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cars-service
+  template:
+    metadata:
+      labels:
+        app: cars-service
+    spec:
+      containers:
+      - name: cars-service
+        image: cars-service:latest
+        ports:
+        - containerPort: 8082
+        env:
+        - name: DB_HOST
+          value: postgres
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_NAME
+          value: cars_db
+        - name: DB_USERNAME
+          value: nom_utilisateur
+        - name: DB_PASSWORD
+          value: mot_de_passe
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          value: kafka:9092
+        - name: CUSTOMER_SERVICE_URL
+          value: http://customer-service:8081
+        - name: SPRING_CLOUD_DISCOVERY_ENABLED
+          value: "true"
+        - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+          value: http://discovery-service:8761/eureka/
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cars-service
+spec:
+  selector:
+    app: cars-service
+  ports:
+  - port: 8082
+    targetPort: 8082
+  type: ClusterIP

@@ -1,147 +1,207 @@
 version: '3.8'
-
 services:
   gateway-service:
     image: gateway-service:latest
     ports:
-      - "8888:8888"
+     - "8888:8888"
     depends_on:
-      - discovery-service
+     - discovery-service
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
     networks:
-      - app-network
+     - app-network
 
   discovery-service:
     image: discovery-service:latest
     ports:
-      - "8761:8761"
+     - "8761:8761"
     environment:
-      - SPRING_APPLICATION_NAME=discovery-service
-      - SERVER_PORT=8761
-      - EUREKA_CLIENT_FETCH_REGISTRY=false
-      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=false
+     - SPRING_APPLICATION_NAME=discovery-service
+     - SERVER_PORT=8761
+     - EUREKA_CLIENT_FETCH_REGISTRY=false
+     - EUREKA_CLIENT_REGISTER_WITH_EUREKA=false
     networks:
-      - app-network
+     - app-network
 
   cars-service:
     image: cars-service:latest
     ports:
-      - "8082:8082"
+     - "8082:8082"
     environment:
-      - DB_HOST=localhost
-      - DB_PORT=5432
-      - DB_NAME=cars_db
-      - DB_USERNAME=nom_utilisateur
-      - DB_PASSWORD=mot_de_passe
-      - KAFKA_BOOTSTRAP_SERVERS=localhost:9092
-      - CUSTOMER_SERVICE_URL=http://localhost:8081
-      - SPRING_CLOUD_DISCOVERY_ENABLED=true
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://localhost:8761/eureka/
+     - DB_HOST=postgres
+     - DB_PORT=5432
+     - DB_NAME=cars_db
+     - DB_USERNAME=nom_utilisateur
+     - DB_PASSWORD=mot_de_passe
+     - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+     - CUSTOMER_SERVICE_URL=http://customer-service:8081
+     - SPRING_CLOUD_DISCOVERY_ENABLED=true
+     - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
+    depends_on:
+     - postgres
+     - kafka
+     - discovery-service
     networks:
-      - app-network
+     - app-network
 
   notification-service:
     image: notification-service:latest
     ports:
-      - "8083:8083"
+     - "8083:8083"
     environment:
-      - KAFKA_BOOTSTRAP_SERVERS=localhost:9092
-      - MAIL_USERNAME=your-email@example.com
-      - MAIL_PASSWORD=your-email-password
-      - SPRING_CLOUD_DISCOVERY_ENABLED=true
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://localhost:8761/eureka/
+     - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+     - MAIL_USERNAME=gogo.great2020@gmail.com
+     - MAIL_PASSWORD=nwvr nnvi ifar lbwe
+     - SPRING_CLOUD_DISCOVERY_ENABLED=true
+     - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
+     - REDIS_HOST=redis
+     - REDIS_PORT=6379
+    depends_on:
+     - kafka
+     - discovery-service
+     - redis
     networks:
-      - app-network
+     - app-network
 
   customer-service:
     image: customer-service:latest
     ports:
-      - "8081:8081"
+     - "8081:8081"
     environment:
-      - DB_HOST=localhost
-      - DB_PORT=5432
-      - DB_NAME=customer_db
-      - DB_USERNAME=nom_utilisateur
-      - DB_PASSWORD=mot_de_passe
-      - KAFKA_BOOTSTRAP_SERVERS=localhost:9092
-      - SPRING_CLOUD_DISCOVERY_ENABLED=true
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://localhost:8761/eureka/
+     - DB_HOST=postgres
+     - DB_PORT=5432
+     - DB_NAME=customer_db
+     - DB_USERNAME=nom_utilisateur
+     - DB_PASSWORD=mot_de_passe
+     - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+     - SPRING_CLOUD_DISCOVERY_ENABLED=true
+     - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
+    depends_on:
+     - postgres
+     - kafka
+     - discovery-service
     networks:
-      - app-network
+     - app-network
 
   billing-service:
     image: billing-service:latest
     ports:
-      - "8085:8085"
+     - "8085:8085"
     environment:
-      - KAFKA_BOOTSTRAP_SERVERS=localhost:9092
-      - DB_HOST=localhost
-      - DB_PORT=5432
-      - DB_NAME=billing_service
-      - DB_USERNAME=nom_utilisateur
-      - DB_PASSWORD=mot_de_passe
-      - SPRING_CLOUD_DISCOVERY_ENABLED=true
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://localhost:8761/eureka/
+     - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+     - DB_HOST=postgres
+     - DB_PORT=5432
+     - DB_NAME=billing_db
+     - DB_USERNAME=nom_utilisateur
+     - DB_PASSWORD=mot_de_passe
+     - SPRING_CLOUD_DISCOVERY_ENABLED=true
+     - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
+    depends_on:
+     - postgres
+     - kafka
+     - discovery-service
     networks:
-      - app-network
+     - app-network
 
   workshop-service:
     image: workshop-service:latest
     ports:
-      - "8084:8084"
+     - "8084:8084"
     environment:
-      - SERVER_PORT=8084
-      - APPLICATION_NAME=workshop-service
-      - DB_HOST=localhost
-      - DB_PORT=5432
-      - DB_NAME=workshop_db
-      - DB_USERNAME=nom_utilisateur
-      - DB_PASSWORD=mot_de_passe
-      - JPA_DDL_AUTO=create
-      - SHOW_SQL=true
-      - KAFKA_BOOTSTRAP_SERVERS=localhost:9092
-      - EUREKA_DEFAULT_ZONE=http://localhost:8761/eureka/
-      - LOG_LEVEL=DEBUG
+     - SERVER_PORT=8084
+     - APPLICATION_NAME=workshop-service
+     - DB_HOST=postgres
+     - DB_PORT=5432
+     - DB_NAME=workshop_db
+     - DB_USERNAME=nom_utilisateur
+     - DB_PASSWORD=mot_de_passe
+     - JPA_DDL_AUTO=create
+     - SHOW_SQL=true
+     - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+     - EUREKA_DEFAULT_ZONE=http://discovery-service:8761/eureka/
+     - LOG_LEVEL=DEBUG
+    depends_on:
+     - postgres
+     - kafka
+     - discovery-service
+    networks:
+     - app-network
+
+  auth-service:
+    image: auth-service:latest
+    ports:
+      - "3000:3000"
+    environment:
+   # Configuration MongoDB
+      - MONGO_URI=mongodb://mongo:27017/auth-service-db
+   
+   # Configuration Eureka
+      - EUREKA_HOST=discovery-service
+      - EUREKA_PORT=8761
+      - HOSTNAME=auth-service
+      - IPADDR=auth-service
+      - JWT_EXPIRES_IN=24h
+      - PORT=3000
+    depends_on:
+      - mongo
+      - discovery-service
     networks:
       - app-network
 
   postgres:
     image: postgres:latest
     ports:
-      - "5432:5432"
+     - "5432:5432"
     environment:
       POSTGRES_USER: nom_utilisateur
       POSTGRES_PASSWORD: mot_de_passe
-      POSTGRES_DB: microservices_db
+      POSTGRES_MULTIPLE_DATABASES: cars_db,customer_db,billing_db,workshop_db
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+     - postgres-data:/var/lib/postgresql/data
     networks:
-      - app-network
+     - app-network
 
   mongo:
     image: mongo:latest
     ports:
-      - "27017:27017"
+     - "27017:27017"
     volumes:
-      - mongo-data:/data/db
+     - mongo-data:/data/db
     networks:
-      - app-network
+     - app-network
 
-  auth:
-    build:
-      context: ./auth
-      dockerfile: Dockerfile
+  redis:
+    image: redis:latest
     ports:
-      - "3000:3000"
-    environment:
-      - MONGO_URI=mongodb://mongo:27017/auth-service-db
-    depends_on:
-      - mongo
+     - "6379:6379"
+    volumes:
+     - redis-data:/data
     networks:
-      - app-network
+     - app-network
+
+  zookeeper:
+    image: wurstmeister/zookeeper
+    ports:
+     - "2181:2181"
+    networks:
+     - app-network
+
+  kafka:
+    image: wurstmeister/kafka
+    ports:
+     - "9092:9092"
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: kafka
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+    depends_on:
+     - zookeeper
+    networks:
+     - app-network
 
 volumes:
   postgres-data:
   mongo-data:
+  redis-data:
 
 networks:
   app-network:

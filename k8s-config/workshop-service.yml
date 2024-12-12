@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: workshop-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: workshop-service
+  template:
+    metadata:
+      labels:
+        app: workshop-service
+    spec:
+      containers:
+      - name: workshop-service
+        image: workshop-service:latest
+        ports:
+        - containerPort: 8084
+        env:
+        - name: SERVER_PORT
+          value: "8084"
+        - name: APPLICATION_NAME
+          value: workshop-service
+        - name: DB_HOST
+          value: postgres
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_NAME
+          value: workshop_db
+        - name: DB_USERNAME
+          value: nom_utilisateur
+        - name: DB_PASSWORD
+          value: mot_de_passe
+        - name: JPA_DDL_AUTO
+          value: create
+        - name: SHOW_SQL
+          value: "true"
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          value: kafka:9092
+        - name: EUREKA_DEFAULT_ZONE
+          value: http://discovery-service:8761/eureka/
+        - name: LOG_LEVEL
+          value: DEBUG
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: workshop-service
+spec:
+  selector:
+    app: workshop-service
+  ports:
+  - port: 8084
+    targetPort: 8084
+  type: ClusterIP

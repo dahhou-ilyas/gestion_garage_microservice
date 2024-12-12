@@ -24,6 +24,9 @@ const app=express();
 
 connectDB();
 
+console.log("!!!!!!!!!!!!!!!!!!");
+console.log(process.env.EUREKA_HOST);
+console.log("!!!!!!!!!!!!!!!!!!");
 
 app.use(express.json());
 

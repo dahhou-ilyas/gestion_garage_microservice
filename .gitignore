@@ -1,0 +1,5 @@
+# Ignore secret config files
+k8s-config/secret-config*
+
+# Ignore Docker Compose files
+docker-compose*.yml

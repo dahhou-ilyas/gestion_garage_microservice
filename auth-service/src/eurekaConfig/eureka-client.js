@@ -1,12 +1,8 @@
 const Eureka = require('eureka-js-client').Eureka;
 
-const eurekaHost = process.env.EUREKA_HOST || 'localhost';
-const eurekaPort = process.env.EUREKA_PORT || 8761;
-
-
 const client = new Eureka({
   instance: {
-    app: 'auth-service',
+    app: 'AUTH-SERVICE',
     hostName: process.env.HOSTNAME || 'localhost',
     ipAddr: process.env.IPADDR || '127.0.0.1',
     port: {
@@ -17,13 +13,34 @@ const client = new Eureka({
     dataCenterInfo: {
       '@class': 'com.netflix.appinfo.InstanceInfo$DefaultDataCenterInfo',
       name: 'MyOwn'
-    }
+    },
+    healthCheckUrl: `http://${process.env.HOSTNAME || 'localhost'}:${process.env.PORT || 3000}/health`,
+    statusPageUrl: `http://${process.env.HOSTNAME || 'localhost'}:${process.env.PORT || 3000}/info`
   },
   eureka: {
-    host: eurekaHost,
-    port: eurekaPort,
-    servicePath: '/eureka/apps/'
+    host: process.env.EUREKA_HOST || 'localhost',
+    port: process.env.EUREKA_PORT || 8761,
+    servicePath: '/eureka/apps/',
+    fetchRegistryInterval: 30000,
+    registerWithEureka: true,
+    maxRetries: 5,
+    requestRetryDelay: 5000
   }
 });
-  
+
+
+client.start();
+
+client.on('registered', () => {
+  console.log('Registered with Eureka');
+});
+
+client.on('deregistered', () => {
+  console.log('Deregistered from Eureka');
+});
+
+client.on('error', (error) => {
+  console.error('Eureka Client Error:', error);
+});
+
 module.exports = client;

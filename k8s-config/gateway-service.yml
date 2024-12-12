@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway-service
+  template:
+    metadata:
+      labels:
+        app: gateway-service
+    spec:
+      containers:
+      - name: gateway-service
+        image: gateway-service:latest
+        ports:
+        - containerPort: 8888
+        env:
+        - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+          value: http://discovery-service:8761/eureka/
+      initContainers:
+      - name: wait-for-discovery-service
+        image: busybox
+        command: ['sh', '-c', 'until nslookup discovery-service; do echo waiting for discovery-service; sleep 2; done;']
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway-service
+spec:
+  selector:
+    app: gateway-service
+  ports:
+  - port: 8888
+    targetPort: 8888
+  type: LoadBalancer
