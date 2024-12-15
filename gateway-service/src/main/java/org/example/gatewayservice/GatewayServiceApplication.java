@@ -8,12 +8,15 @@ import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 import org.springframework.cloud.gateway.discovery.DiscoveryClientRouteDefinitionLocator;
 import org.springframework.cloud.gateway.discovery.DiscoveryLocatorProperties;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
+import org.springframework.cloud.gateway.filter.factory.rewrite.CachedBodyOutputMessage;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.reactive.config.CorsRegistry;
-import org.springframework.web.reactive.config.WebFluxConfigurer;
+import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+
+import java.nio.charset.StandardCharsets;
 
 @SpringBootApplication
 @Configuration
@@ -41,10 +44,45 @@ public class GatewayServiceApplication {
     }
 
     @Bean
-    public GlobalFilter tokenVerificationFilter(
+    public GlobalFilter combinedFilter(
             @Qualifier("customWebClientBuilder") WebClient.Builder webClientBuilder,
             ReactiveDiscoveryClient discoveryClient
     ) {
-        return new TokenVerificationFilter(webClientBuilder, discoveryClient);
+        return (exchange, chain) -> {
+            // Token verification logging
+            System.out.println("Verifying token for request");
+            // Debug logging for request details
+            System.out.println("Request Path: " + exchange.getRequest().getPath());
+            System.out.println("Request Method: " + exchange.getRequest().getMethod());
+            System.out.println("Request Headers: " + exchange.getRequest().getHeaders());
+
+            // Create TokenVerificationFilter if needed
+            TokenVerificationFilter tokenFilter = new TokenVerificationFilter(webClientBuilder, discoveryClient);
+
+            // Capture the original response body
+            ServerHttpResponse originalResponse = exchange.getResponse();
+            CachedBodyOutputMessage cachedBodyOutputMessage = new CachedBodyOutputMessage(exchange, originalResponse.getHeaders());
+
+            return chain.filter(exchange.mutate().response(new CachedBodyServerHttpResponse(originalResponse, cachedBodyOutputMessage)).build())
+                    .doOnError(error -> {
+                        System.out.println(exchange.getResponse());
+                        // Error logging
+                        System.err.println("Error in filter chain: " + error);
+                    })
+                    .then(Mono.fromRunnable(() -> {
+                        // Read and log the response body
+                        DataBufferUtils.join(cachedBodyOutputMessage.getBody())
+                                .subscribe(dataBuffer -> {
+                                    byte[] content = new byte[dataBuffer.readableByteCount()];
+                                    dataBuffer.read(content);
+                                    String bodyContent = new String(content, StandardCharsets.UTF_8);
+                                    System.out.println("Response Body: " + bodyContent);
+
+                                    // Important: release the buffer to prevent memory leaks
+                                    DataBufferUtils.release(dataBuffer);
+                                });
+                    }));
+        };
+
     }
 }
