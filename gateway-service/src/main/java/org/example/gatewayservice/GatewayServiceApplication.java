@@ -57,7 +57,8 @@ public class GatewayServiceApplication {
             System.out.println("Request Headers: " + exchange.getRequest().getHeaders());
 
             // Create TokenVerificationFilter if needed
-            TokenVerificationFilter tokenFilter = new TokenVerificationFilter(webClientBuilder, discoveryClient);
+
+            TokenVerificationFilter tokenFilter = new TokenVerificationFilter(webClientBuilder, discoveryClient); //erruer dans le token filter on doit le faire comme le chaine .filter
 
             // Capture the original response body
             ServerHttpResponse originalResponse = exchange.getResponse();
