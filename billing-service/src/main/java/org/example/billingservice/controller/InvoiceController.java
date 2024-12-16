@@ -1,6 +1,7 @@
 package org.example.billingservice.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.example.billingservice.dto.InvoiceDTO;
 import org.example.billingservice.entities.Invoice;
 import org.example.billingservice.entities.InvoiceStatus;
 import org.example.billingservice.service.BillingService;
@@ -45,5 +46,15 @@ public class InvoiceController {
                         "attachment; filename=\"" + pdfPath.getFileName() + "\"")
                 .body(resource);
 
+    }
+
+    @GetMapping
+    public ResponseEntity<List<InvoiceDTO>> getAllInvoice(){
+        return ResponseEntity.ok(billingService.getAllInvoice());
+    }
+
+    @GetMapping("/count")
+    public ResponseEntity<Integer> countNumberInvoice(){
+        return ResponseEntity.ok(billingService.getAllInvoice().size());
     }
 }

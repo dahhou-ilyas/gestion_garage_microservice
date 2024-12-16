@@ -7,9 +7,11 @@ import org.example.billingservice.client.CustomerServiceClient;
 import org.example.billingservice.client.VehicleServiceClient;
 import org.example.billingservice.dto.CarsDTO;
 import org.example.billingservice.dto.CustomerDTO;
+import org.example.billingservice.dto.InvoiceDTO;
 import org.example.billingservice.dto.MaintenanceCompletedEvent;
 import org.example.billingservice.entities.Invoice;
 import org.example.billingservice.entities.InvoiceStatus;
+import org.example.billingservice.mapper.InvoiceMapper;
 import org.example.billingservice.repository.InvoiceRepository;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -31,6 +33,7 @@ public class BillingService {
     private final PDFGeneratorService pdfGeneratorService;
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
+    private final InvoiceMapper invoiceMapper;
 
     private final BigDecimal TAX_RATE = BigDecimal.valueOf(0.2); // 20% tax rate
     private final int PAYMENT_DUE_DAYS = 30;
@@ -139,5 +142,9 @@ public class BillingService {
 
     public Invoice getInvoiceById(Long id){
         return invoiceRepository.findById(id).orElseThrow(()-> new RuntimeException("Invoice not existe"));
+    }
+
+    public List<InvoiceDTO> getAllInvoice(){
+        return invoiceRepository.findAll().stream().map(invoiceMapper::toDTO).toList();
     }
 }
