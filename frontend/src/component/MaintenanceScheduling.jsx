@@ -18,7 +18,7 @@ const MaintenanceScheduling = () => {
     const handleMaintenanceSchedule = async (e) => {
         e.preventDefault();
         try {
-          const response = await axios.post(`${BACKEND_URL}/maintenance`, {
+          const response = await axios.post(`${BACKEND_URL}/workshop-service/api/maintenance`, {
             ...maintenance,
             startTime: new Date(maintenance.startTime).toISOString(),
             endTime: new Date(maintenance.endTime).toISOString(),

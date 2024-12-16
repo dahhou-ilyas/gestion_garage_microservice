@@ -10,7 +10,7 @@ const VehicleList = () => {
   useEffect(() => {
     const fetchVehicles = async () => {
       try {
-        const response = await axios.get(`${BACKEND_URL}/cars`);
+        const response = await axios.get(`${BACKEND_URL}/cars-service/api/cars`);
         setVehicles(response.data);
         setLoading(false);
       } catch (err) {

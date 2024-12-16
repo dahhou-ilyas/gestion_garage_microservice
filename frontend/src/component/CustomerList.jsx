@@ -10,7 +10,7 @@ const CustomerList = () => {
   useEffect(() => {
     const fetchCustomers = async () => {
       try {
-        const response = await axios.get(`${BACKEND_URL}/CUSTOMER-SERVICE/api/customers`);
+        const response = await axios.get(`${BACKEND_URL}/customer-service/api/customers`);
         setCustomers(response.data);
         setLoading(false);
       } catch (err) {

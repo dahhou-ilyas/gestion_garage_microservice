@@ -21,7 +21,7 @@ const VehicleManagement = () => {
     const handleVehicleSubmit = async (e) => {
         e.preventDefault();
         try {
-          const response = await axios.post(`${BACKEND_URL}/cars`, {
+          const response = await axios.post(`${BACKEND_URL}/cars-service/api/cars`, {
             ...vehicle,
             yearOfFabrication: Number(vehicle.yearOfFabrication),
             km: Number(vehicle.km)

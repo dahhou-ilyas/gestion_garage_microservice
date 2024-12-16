@@ -11,7 +11,8 @@ const MaintenanceList = () => {
   useEffect(() => {
     const fetchMaintenances = async () => {
       try {
-        const response = await axios.get(`${BACKEND_URL}/maintenance`);
+        // Ensure the endpoint matches the backend controller
+        const response = await axios.get(`${BACKEND_URL}/workshop-service/api/maintenance`);
         setMaintenances(response.data);
         setLoading(false);
       } catch (err) {
@@ -19,11 +20,10 @@ const MaintenanceList = () => {
         setLoading(false);
       }
     };
-
     fetchMaintenances();
   }, []);
 
-  const filteredMaintenances = maintenances.filter(maintenance => 
+  const filteredMaintenances = maintenances.filter(maintenance =>
     filter === 'ALL' || maintenance.status === filter
   );
 
@@ -35,8 +35,8 @@ const MaintenanceList = () => {
       <h2 className="text-2xl mb-4">Maintenance Records</h2>
       <div className="mb-4">
         <label className="mr-2">Filter by Status:</label>
-        <select 
-          value={filter} 
+        <select
+          value={filter}
           onChange={(e) => setFilter(e.target.value)}
           className="p-2 border rounded"
         >
@@ -49,8 +49,8 @@ const MaintenanceList = () => {
       <table className="w-full border-collapse border">
         <thead>
           <tr className="bg-gray-200">
-            <th className="border p-2">Vehicle ID</th>
-            <th className="border p-2">Customer ID</th>
+            <th className="border p-2">Vehicle</th>
+            <th className="border p-2">Customer</th>
             <th className="border p-2">Start Time</th>
             <th className="border p-2">End Time</th>
             <th className="border p-2">Description</th>
@@ -61,13 +61,26 @@ const MaintenanceList = () => {
         <tbody>
           {filteredMaintenances.map((maintenance) => (
             <tr key={maintenance.id} className="hover:bg-gray-100">
-              <td className="border p-2">{maintenance.vehicleId}</td>
-              <td className="border p-2">{maintenance.customerId}</td>
+              <td className="border p-2">
+                {maintenance.vehicle ? 
+                  `${maintenance.vehicle.brand} ${maintenance.vehicle.model}` : 
+                  maintenance.vehicleId
+                }
+              </td>
+              <td className="border p-2">
+                {maintenance.customer ? 
+                  `${maintenance.customer.firstName} ${maintenance.customer.lastName}` : 
+                  maintenance.customerId
+                }
+              </td>
               <td className="border p-2">{new Date(maintenance.startTime).toLocaleString()}</td>
               <td className="border p-2">{new Date(maintenance.endTime).toLocaleString()}</td>
               <td className="border p-2">{maintenance.description}</td>
               <td className="border p-2">{maintenance.status}</td>
-              <td className="border p-2">{maintenance.estimatedCost ? `$${maintenance.estimatedCost.toFixed(2)}` : 'N/A'}</td>
+              <td className="border p-2">
+                {maintenance.estimatedCost ? 
+                  `$${maintenance.estimatedCost.toFixed(2)}` : 'N/A'}
+              </td>
             </tr>
           ))}
         </tbody>
