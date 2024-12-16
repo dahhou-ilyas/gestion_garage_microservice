@@ -160,24 +160,43 @@ function App() {
 
 // Simple Dashboard Component
 const Dashboard = ({ userInfo }) => {
+  const [data,setData]=useState([]);
   useEffect(()=>{
-    
+    const customerCountURL = `${BACKEND_URL}/customer-service/api/customers/count`;
+    const carsCountURL = `${BACKEND_URL}/cars-service/api/cars/count`;
+    const maintenanceCountURL = `${BACKEND_URL}/workshop-service/api/maintenance/count`;
+    const fetchAll = async ()=>{
+      const [customerCountResponse, carsCountResponse, maintenanceCountResponse] = await Promise.all([
+        axios.get(customerCountURL),
+        axios.get(carsCountURL),
+        axios.get(maintenanceCountURL)
+      ]);
+      const customerCount = customerCountResponse.data;
+      const carsCount = carsCountResponse.data;
+      const maintenanceCount = maintenanceCountResponse.data;
+      return { customerCount, carsCount, maintenanceCount };
+    }
+    fetchAll().then(resp=>{
+      setData([...Object.values(resp)]);
+    }).catch(e=>{
+      console.error(e);
+    })
   })
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       <DashboardCard 
         title="Total Customers" 
-        value="124" 
+        value={data[0]} 
         icon={<UserIcon className="text-blue-500" />} 
       />
       <DashboardCard 
         title="Total Vehicles" 
-        value="87" 
+        value={data[1]} 
         icon={<CarIcon className="text-green-500" />} 
       />
       <DashboardCard 
-        title="Active Maintenance" 
-        value="12" 
+        title="Total Maintenance" 
+        value={data[2]} 
         icon={<WrenchIcon className="text-purple-500" />} 
       />
       <DashboardCard 
