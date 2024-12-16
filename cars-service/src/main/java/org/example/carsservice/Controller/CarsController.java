@@ -53,4 +53,8 @@ public class CarsController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/count")
+    public ResponseEntity<Integer> countNumberCars(){
+        return ResponseEntity.ok(carsService.getAllCars().size());
+    }
 }

@@ -98,7 +98,7 @@ const MaintenanceScheduling = () => {
                                 vehicleId: null // Réinitialiser le véhicule
                             }));
                         }}
-                        className="w-full p-3 border border-gray-300 rounded-lg bg-white text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none hover:border-blue-400 transition duration-300"
+                        className="w-full p-3 border border-gray-300 rounded-lg bg-white text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none hover:border-blue-400 transition duration-300 appearance-none"
                         required
                     >
                         <option value="">Select a Customer</option>
@@ -122,7 +122,7 @@ const MaintenanceScheduling = () => {
                                 ...prev,
                                 vehicleId: Number(e.target.value)
                             }))}
-                            className="w-full p-2 border rounded"
+                            className="w-full p-3 border border-gray-300 rounded-lg bg-white text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none hover:border-blue-400 transition duration-300 appearance-none"
                             required
                             disabled={vehicles.length === 0}
                         >
@@ -132,7 +132,7 @@ const MaintenanceScheduling = () => {
                                     key={vehicle.id} 
                                     value={vehicle.id}
                                 >
-                                    {vehicle.brand} {vehicle.model} (Plate: {vehicle.licensePlate})
+                                    {vehicle.marque} {vehicle.model} (Plate: {vehicle.regestrationNumber})
                                 </option>
                             ))}
                         </select>

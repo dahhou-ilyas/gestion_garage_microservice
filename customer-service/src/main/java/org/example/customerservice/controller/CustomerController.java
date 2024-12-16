@@ -36,4 +36,9 @@ public class CustomerController {
     public ResponseEntity<List<CustomerDTO>> getAllCustomers(){
         return ResponseEntity.ok(customerService.getAllCustomers());
     }
+
+    @GetMapping("/count")
+    public ResponseEntity<Integer> countCustomerNumber(){
+        return ResponseEntity.ok(customerService.getAllCustomers().size());
+    }
 }

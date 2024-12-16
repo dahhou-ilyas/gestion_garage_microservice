@@ -41,4 +41,9 @@ public class MaintenanceController {
     public ResponseEntity<List<MaintenanceWorkDTO>> getAllMaintenanceWorks() {
         return ResponseEntity.ok(maintenanceService.getAllMaintenanceWorks());
     }
+
+    @GetMapping("/count")
+    public ResponseEntity<Integer> countNumberOfWork(){
+        return ResponseEntity.ok(maintenanceService.getAllMaintenanceWorks().size());
+    }
 }
