@@ -17,6 +17,7 @@ import MaintenanceList from "./component/MaintenanceList";
 import BillingManagement from "./component/BillingManagement";
 import axios from "axios";
 import { BACKEND_URL } from "../config";
+import BillingList from "./component/BillingList";
 
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -83,8 +84,8 @@ function App() {
       
       case 'billing':
         return activeSubTab === 'list' 
-          ? null  // You might want to add a billing list component
-          : <BillingManagement />;
+          ? <BillingList/>  // You might want to add a billing list component
+          : null;
       
       default:
         return <Dashboard userInfo={userInfo} />;
@@ -165,23 +166,27 @@ const Dashboard = ({ userInfo }) => {
     const customerCountURL = `${BACKEND_URL}/customer-service/api/customers/count`;
     const carsCountURL = `${BACKEND_URL}/cars-service/api/cars/count`;
     const maintenanceCountURL = `${BACKEND_URL}/workshop-service/api/maintenance/count`;
+    const billingCountURL = `${BACKEND_URL}/billing-service/api/invoices/count`;
     const fetchAll = async ()=>{
-      const [customerCountResponse, carsCountResponse, maintenanceCountResponse] = await Promise.all([
+      const [customerCountResponse, carsCountResponse, maintenanceCountResponse, billingCountResponse] = await Promise.all([
         axios.get(customerCountURL),
         axios.get(carsCountURL),
-        axios.get(maintenanceCountURL)
+        axios.get(maintenanceCountURL),
+        axios.get(billingCountURL)
       ]);
       const customerCount = customerCountResponse.data;
       const carsCount = carsCountResponse.data;
       const maintenanceCount = maintenanceCountResponse.data;
-      return { customerCount, carsCount, maintenanceCount };
+      const billingCount = billingCountResponse.data;
+      console.log(billingCount);
+      return { customerCount, carsCount, maintenanceCount,billingCount };
     }
     fetchAll().then(resp=>{
       setData([...Object.values(resp)]);
     }).catch(e=>{
       console.error(e);
     })
-  })
+  },[])
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       <DashboardCard 
@@ -201,7 +206,7 @@ const Dashboard = ({ userInfo }) => {
       />
       <DashboardCard 
         title="Pending Billing" 
-        value="5" 
+        value={data[3]} 
         icon={<DollarSignIcon className="text-red-500" />} 
       />
     </div>
