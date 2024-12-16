@@ -11,6 +11,9 @@ import org.example.customerservice.repository.CustomerRepository;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class CustomerService {
@@ -60,6 +63,10 @@ public class CustomerService {
         return customerRepository.findById(id)
                 .map(this::mapToDTO)
                 .orElseThrow(() -> new EntityNotFoundException("Customer not found"));
+    }
+
+    public List<CustomerDTO> getAllCustomers(){
+        return customerRepository.findAll().stream().map(this::mapToDTO).toList();
     }
 
 

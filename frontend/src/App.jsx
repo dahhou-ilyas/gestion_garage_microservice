@@ -27,23 +27,10 @@ function App() {
   useEffect(() => {
     const token = localStorage.getItem('authToken');
     if (token) {
-      verifyToken(token);
+      setIsAuthenticated(true);
     }
   }, []);
 
-  const verifyToken = async (token) => {
-    try {
-      const response = await axios.get(`${BACKEND_URL}/auth/verify`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setIsAuthenticated(true);
-      setUserInfo(response.data.user);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    } catch (error) {
-      localStorage.removeItem('authToken');
-      setIsAuthenticated(false);
-    }
-  };
 
   const handleLoginSuccess = (userData) => {
     setIsAuthenticated(true);

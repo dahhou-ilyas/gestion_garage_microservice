@@ -146,4 +146,16 @@ public class MaintenanceService {
                 .build();
     }
 
+
+    public List<MaintenanceWorkDTO> getAllMaintenanceWorks() {
+        return maintenanceWorkRepository.findAllByOrderByStartTimeDesc()
+                .stream()
+                .map(work -> {
+                    CarsDTO vehicle = vehicleServiceClient.getCarById(work.getVehicleId());
+                    CustomerDTO customer = customerServiceClient.getCustomerById(work.getCustomerId());
+                    return mapToDTO(work, vehicle, customer);
+                })
+                .collect(Collectors.toList());
+    }
+
 }

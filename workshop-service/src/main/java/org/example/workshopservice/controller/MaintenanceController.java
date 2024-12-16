@@ -35,4 +35,10 @@ public class MaintenanceController {
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         return ResponseEntity.ok(maintenanceService.getScheduleForDay(date));
     }
+
+
+    @GetMapping
+    public ResponseEntity<List<MaintenanceWorkDTO>> getAllMaintenanceWorks() {
+        return ResponseEntity.ok(maintenanceService.getAllMaintenanceWorks());
+    }
 }

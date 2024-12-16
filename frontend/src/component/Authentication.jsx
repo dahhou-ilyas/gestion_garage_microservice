@@ -21,19 +21,21 @@ const Authentication = ({ onLoginSuccess }) => {
         password: credentials.password
       });
 
-      const { token } = response.data;
+      const { token ,employee} = response.data;
 
       localStorage.setItem('authToken', token);
+      localStorage.setItem('employee',employee)
 
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
-      onLoginSuccess();
+      onLoginSuccess(employee);
 
     } catch (error) {
       console.error('Login failed', error);
       setError('Invalid username or password');
       
       localStorage.removeItem('authToken');
+      localStorage.removeItem('employee')
       delete axios.defaults.headers.common['Authorization'];
     } finally {
       setIsLoading(false);
