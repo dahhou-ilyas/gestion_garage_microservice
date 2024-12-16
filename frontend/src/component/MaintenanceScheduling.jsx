@@ -38,7 +38,7 @@ const MaintenanceScheduling = () => {
         const fetchVehiclesForCustomer = async () => {
             if (selectedCustomer) {
                 try {
-                    const response = await axios.get(`${BACKEND_URL}/cars-service/api/cars/customer/${selectedCustomer}`);
+                    const response = await axios.get(`${BACKEND_URL}/cars-service/api/cars/owner/${selectedCustomer}`);
                     setVehicles(response.data);
                 } catch (error) {
                     console.error('Erreur lors du chargement des véhicules', error);
