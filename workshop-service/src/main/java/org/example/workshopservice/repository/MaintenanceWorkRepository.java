@@ -14,4 +14,8 @@ public interface MaintenanceWorkRepository extends JpaRepository<MaintenanceWork
     List<MaintenanceWork> findByCustomerId(Long customerId);
     List<MaintenanceWork> findByStatus(MaintenanceStatus status);
     List<MaintenanceWork> findAllByOrderByStartTimeDesc();
+    List<MaintenanceWork> findByStatusAndEndTimeBefore(
+            MaintenanceStatus status,
+            LocalDateTime time
+    );
 }

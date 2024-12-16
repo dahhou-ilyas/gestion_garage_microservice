@@ -2,6 +2,8 @@ package org.example.workshopservice.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.workshopservice.client.CustomerServiceClient;
@@ -22,6 +24,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,6 +38,36 @@ public class MaintenanceService {
     private final CustomerServiceClient customerServiceClient;
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+
+    @Transactional
+    public void checkAndCompleteMaintenance(){
+        LocalDateTime now = LocalDateTime.now();
+        List<MaintenanceWork> completableWorks = maintenanceWorkRepository
+                .findByStatusAndEndTimeBefore(MaintenanceStatus.IN_PROGRESS, now);
+
+        for (MaintenanceWork work : completableWorks){
+            try {
+                completeMaintenance(work.getId(), work.getEstimatedCost());
+                log.info("Maintenance automatiquement terminée pour l'ID : {}", work.getId());
+            }catch (Exception e){
+                log.error("Erreur lors de la complétion automatique de la maintenance", e);
+            }
+        }
+    }
+    @PostConstruct
+    public void scheduleMaintenanceCompletion() {
+        scheduler.scheduleAtFixedRate(
+                this::checkAndCompleteMaintenance,
+                0,  // délai initial
+                15, // période de vérification (15 minutes)
+                TimeUnit.MINUTES
+        );
+    }
+    @PreDestroy
+    public void shutdownScheduler() {
+        scheduler.shutdown();
+    }
 
     @Transactional
     public MaintenanceWorkDTO scheduleMaintenance(MaintenanceWorkDTO dto) throws JsonProcessingException {
