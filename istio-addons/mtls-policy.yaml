@@ -1,0 +1,37 @@
+# mtls-policy.yaml
+---
+# Configuration globale du mTLS pour tout le mesh
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: default
+  namespace: istio-system
+spec:
+  mtls:
+    mode: STRICT
+---
+# Configuration optionnelle pour permettre le monitoring des endpoints de santé
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: health-check-policy
+  namespace: istio-system
+spec:
+  selector:
+    matchLabels:
+      app: istio-ingressgateway
+  portLevelMtls:
+    15021:  # Port de health check
+      mode: PERMISSIVE
+---
+# Destination Rule pour forcer l'utilisation du mTLS
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: default
+  namespace: istio-system
+spec:
+  host: "*.local"
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL

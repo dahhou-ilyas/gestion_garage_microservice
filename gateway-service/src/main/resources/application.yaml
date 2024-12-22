@@ -1,17 +1,12 @@
 spring:
   application:
     name: gateway-service
-
-  # Configuration avancée de Spring Cloud Gateway
   cloud:
     gateway:
-      # Activation de la découverte de services
       discovery:
         locator:
           enabled: true
           lower-case-service-id: true
-
-      # Routes explicites pour chaque microservice
       routes:
         - id: customer-service
           uri: lb://CUSTOMER-SERVICE
@@ -19,35 +14,30 @@ spring:
             - Path=/customer-service/**
           filters:
             - StripPrefix=1
-
         - id: auth-service
           uri: lb://AUTH-SERVICE
           predicates:
             - Path=/auth-service/**
           filters:
             - StripPrefix=1
-
         - id: billing-service
           uri: lb://BILLING-SERVICE
           predicates:
             - Path=/billing-service/**
           filters:
             - StripPrefix=1
-
         - id: cars-service
           uri: lb://CARS-SERVICE
           predicates:
             - Path=/cars-service/**
           filters:
             - StripPrefix=1
-
         - id: workshop-service
           uri: lb://WORKSHOP-SERVICE
           predicates:
             - Path=/workshop-service/**
           filters:
             - StripPrefix=1
-
         - id: notification-service
           uri: lb://NOTIFICATION-SERVICE
           predicates:

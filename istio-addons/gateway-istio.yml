@@ -1,0 +1,100 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: gateway-service-gateway
+  namespace: istio-system
+spec:
+  selector:
+    istio: ingressgateway 
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
+
+---
+
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: gateway-service-virtualservice
+  namespace: istio-system
+spec:
+  hosts:
+  - "*" 
+  gateways:
+  - gateway-service-gateway 
+  http:
+  - match:
+    - uri:
+        prefix: "/customer-service/"
+    route:
+    - destination:
+        host: gateway-service.garage.svc.cluster.local
+        port:
+          number: 8888
+  - match:
+    - uri:
+        prefix: "/auth-service/"
+    route:
+    - destination:
+        host: gateway-service.garage.svc.cluster.local
+        port:
+          number: 8888
+  - match:
+    - uri:
+        prefix: "/billing-service/"
+    route:
+    - destination:
+        host: gateway-service.garage.svc.cluster.local
+        port:
+          number: 8888
+  - match:
+    - uri:
+        prefix: "/cars-service/"
+    route:
+    - destination:
+        host: gateway-service.garage.svc.cluster.local
+        port:
+          number: 8888
+  - match:
+    - uri:
+        prefix: "/workshop-service/"
+    route:
+    - destination:
+        host: gateway-service.garage.svc.cluster.local
+        port:
+          number: 8888
+  - match:
+    - uri:
+        prefix: "/notification-service/"
+    route:
+    - destination:
+        host: gateway-service.garage.svc.cluster.local
+        port:
+          number: 8888
+
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: gateway-service-circuit-breaker
+  namespace: istio-system
+spec:
+  host: gateway-service.garage.svc.cluster.local
+  trafficPolicy:
+    outlierDetection:
+      consecutive5xxErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 100
+    connectionPool:
+      tcp:
+        maxConnections: 100
+        connectTimeout: 30ms
+      http:
+        http1MaxPendingRequests: 1
+        maxRequestsPerConnection: 1
+        maxRetries: 3
